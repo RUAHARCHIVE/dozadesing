@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RUAH — Carrito</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #080808;
+      --white: #f0ede8;
+      --grey: #111;
+      --mid: #1a1a1a;
+      --border: rgba(240,237,232,0.08);
+      --muted: #555;
+      --accent: #c8b89a;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      cursor: none;
+      overflow-x: hidden;
+    }
+
+    /* CURSOR */
+    .cursor {
+      width: 10px; height: 10px;
+      background: var(--white);
+      border-radius: 50%;
+      position: fixed; pointer-events: none;
+      z-index: 9999; mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(240,237,232,0.35);
+      border-radius: 50%;
+      position: fixed; pointer-events: none;
+      z-index: 9998; mix-blend-mode: difference;
+      transition: transform 0.3s;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 28px 48px;
+      border-bottom: 1px solid var(--border);
+      background: var(--black);
+    }
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: 0.1em;
+      color: var(--white); text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 48px; }
+    .nav-links a {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--white); text-decoration: none; opacity: 0.5;
+      transition: opacity 0.3s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    /* MAIN LAYOUT */
+    .page-wrap {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      min-height: 100vh;
+      padding-top: 100px;
+    }
+
+    /* CART ITEMS SIDE */
+    .cart-side {
+      padding: 48px 48px 80px;
+      border-right: 1px solid var(--border);
+    }
+    .cart-header {
+      display: flex; align-items: baseline; gap: 16px;
+      margin-bottom: 56px;
+      opacity: 0; animation: fadeUp 0.7s 0.1s forwards;
+    }
+    .cart-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 56px; letter-spacing: 0.04em;
+    }
+    .cart-subtitle {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* CART ITEMS */
+    .cart-items { display: flex; flex-direction: column; }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 100px 1fr auto;
+      gap: 24px;
+      align-items: center;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      opacity: 0; animation: fadeUp 0.6s forwards;
+      position: relative;
+    }
+    .cart-item:nth-child(1) { animation-delay: 0.25s; }
+    .cart-item:nth-child(2) { animation-delay: 0.35s; }
+    .cart-item:nth-child(3) { animation-delay: 0.45s; }
+
+    .item-image {
+      width: 100px; height: 120px;
+      background: var(--mid);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .item-image svg { width: 70px; }
+
+    .item-details { display: flex; flex-direction: column; gap: 6px; }
+    .item-category {
+      font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .item-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px; letter-spacing: 0.05em;
+    }
+    .item-meta {
+      display: flex; gap: 16px; margin-top: 4px;
+    }
+    .item-attr {
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .item-attr span {
+      color: var(--white); margin-left: 6px;
+    }
+
+    /* QTY CONTROL */
+    .qty-control {
+      display: flex; align-items: center; gap: 0;
+      margin-top: 16px;
+      width: fit-content;
+      border: 1px solid var(--border);
+    }
+    .qty-btn {
+      width: 32px; height: 32px;
+      background: none; border: none; cursor: none;
+      color: var(--white); font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .qty-btn:hover { background: var(--mid); }
+    .qty-val {
+      width: 40px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; letter-spacing: 0.1em;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+
+    .item-right {
+      display: flex; flex-direction: column;
+      align-items: flex-end; gap: 12px;
+    }
+    .item-price {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: 0.06em;
+      color: var(--accent);
+    }
+    .item-remove {
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); background: none; border: none; cursor: none;
+      transition: color 0.3s; padding: 4px 0;
+    }
+    .item-remove:hover { color: var(--white); }
+
+    /* EMPTY STATE */
+    .cart-empty {
+      display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 80px 0;
+      gap: 24px;
+      text-align: center;
+    }
+    .cart-empty svg { opacity: 0.15; }
+    .empty-msg {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px; letter-spacing: 0.06em;
+      opacity: 0.3;
+    }
+    .empty-sub {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .btn-browse {
+      margin-top: 8px;
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      padding: 14px 36px;
+      border: 1px solid rgba(240,237,232,0.3);
+      background: none; color: var(--white);
+      cursor: none; transition: background 0.3s, border-color 0.3s;
+    }
+    .btn-browse:hover { background: var(--mid); border-color: var(--white); }
+
+    /* SUMMARY SIDE */
+    .summary-side {
+      padding: 48px 40px;
+      display: flex; flex-direction: column;
+      position: sticky; top: 100px;
+      height: calc(100vh - 100px);
+      opacity: 0; animation: fadeUp 0.7s 0.3s forwards;
+    }
+    .summary-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px; letter-spacing: 0.06em;
+      margin-bottom: 40px;
+    }
+
+    .summary-lines { display: flex; flex-direction: column; gap: 0; }
+    .summary-line {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px; letter-spacing: 0.1em;
+    }
+    .summary-line .label { color: var(--muted); text-transform: uppercase; }
+    .summary-line .val { color: var(--white); }
+    .summary-line.total {
+      margin-top: 8px; border-bottom: none; padding-top: 20px;
+    }
+    .summary-line.total .label {
+      color: var(--white);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px; letter-spacing: 0.08em;
+    }
+    .summary-line.total .val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px; letter-spacing: 0.04em;
+      color: var(--accent);
+    }
+
+    /* PROMO */
+    .promo-wrap {
+      margin-top: 32px;
+      display: flex; gap: 0;
+      border: 1px solid var(--border);
+    }
+    .promo-input {
+      flex: 1; background: none; border: none;
+      padding: 14px 16px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 11px; letter-spacing: 0.15em;
+      color: var(--white);
+      outline: none;
+    }
+    .promo-input::placeholder { color: var(--muted); text-transform: uppercase; }
+    .promo-btn {
+      padding: 14px 20px;
+      background: none; border: none; border-left: 1px solid var(--border);
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); cursor: none;
+      transition: color 0.3s, background 0.3s;
+    }
+    .promo-btn:hover { color: var(--white); background: var(--mid); }
+
+    /* CHECKOUT BTN */
+    .btn-checkout {
+      margin-top: 32px;
+      width: 100%; padding: 20px;
+      background: var(--white); color: var(--black);
+      border: none; cursor: none;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: background 0.3s, transform 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .btn-checkout::after {
+      content: '→';
+      position: absolute; right: 24px; top: 50%;
+      transform: translateY(-50%);
+      font-family: sans-serif; font-size: 20px;
+    }
+    .btn-checkout:hover { background: var(--accent); transform: translateY(-1px); }
+
+    .btn-continue {
+      margin-top: 16px;
+      width: 100%; padding: 14px;
+      background: none; color: var(--muted);
+      border: 1px solid var(--border); cursor: none;
+      font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+      transition: color 0.3s, border-color 0.3s;
+    }
+    .btn-continue:hover { color: var(--white); border-color: rgba(240,237,232,0.3); }
+
+    /* TRUST BADGES */
+    .trust-badges {
+      margin-top: auto; padding-top: 32px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .badge-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .badge-icon {
+      width: 20px; height: 20px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    ::-webkit-scrollbar { width: 2px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--muted); }
+
+    @media (max-width: 900px) {
+      .page-wrap { grid-template-columns: 1fr; }
+      .cart-side { border-right: none; padding: 40px 24px; }
+      .summary-side { position: static; height: auto; padding: 40px 24px; border-top: 1px solid var(--border); }
+      nav { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">RUAH</a>
+    <div class="nav-links">
+      <a href="colecciones.html">Colección</a>
+      <a href="#">Cotizar</a>
+      <a href="#">Nosotros</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- LEFT: ITEMS -->
+    <div class="cart-side">
+      <div class="cart-header">
+        <h1 class="cart-title">Tu Carrito</h1>
+        <span class="cart-subtitle" id="itemCount">2 prendas</span>
+      </div>
+
+      <div class="cart-items" id="cartItems">
+
+        <!-- Item 1 -->
+        <div class="cart-item" data-price="18500">
+          <div class="item-image">
+            <svg viewBox="0 0 200 220" fill="none">
+              <path d="M60 20 L20 60 L50 70 L50 200 L150 200 L150 70 L180 60 L140 20 Q120 35 100 35 Q80 35 60 20Z" fill="#f0ede8" opacity="0.9"/>
+            </svg>
+          </div>
+          <div class="item-details">
+            <span class="item-category">Camiseta</span>
+            <span class="item-name">Essential Tee Blanco</span>
+            <div class="item-meta">
+              <span class="item-attr">Talla <span>M</span></span>
+              <span class="item-attr">Color <span>Blanco</span></span>
+            </div>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="changeQty(this, -1)">−</button>
+              <span class="qty-val">1</span>
+              <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+            </div>
+          </div>
+          <div class="item-right">
+            <span class="item-price">₡18,500</span>
+            <button class="item-remove" onclick="removeItem(this)">Eliminar</button>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="cart-item" data-price="42000">
+          <div class="item-image">
+            <svg viewBox="0 0 200 240" fill="none">
+              <path d="M75 18 Q100 5 125 18 L165 55 L185 65 L170 85 L155 75 L155 210 L45 210 L45 75 L30 85 L15 65 L35 55 Z" fill="#2e2e2e" stroke="#555" stroke-width="0.5"/>
+            </svg>
+          </div>
+          <div class="item-details">
+            <span class="item-category">Hoodie</span>
+            <span class="item-name">Core Hoodie Gris</span>
+            <div class="item-meta">
+              <span class="item-attr">Talla <span>L</span></span>
+              <span class="item-attr">Color <span>Gris</span></span>
+            </div>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="changeQty(this, -1)">−</button>
+              <span class="qty-val">1</span>
+              <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+            </div>
+          </div>
+          <div class="item-right">
+            <span class="item-price">₡42,000</span>
+            <button class="item-remove" onclick="removeItem(this)">Eliminar</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Empty state (hidden initially) -->
+      <div class="cart-empty" id="cartEmpty">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+          <rect x="10" y="25" width="60" height="45" rx="2" stroke="#f0ede8" stroke-width="1.5"/>
+          <path d="M25 25 Q25 10 40 10 Q55 10 55 25" stroke="#f0ede8" stroke-width="1.5" fill="none"/>
+        </svg>
+        <span class="empty-msg">Carrito Vacío</span>
+        <span class="empty-sub">Aún no tienes prendas aquí</span>
+        <button class="btn-browse" onclick="window.location.href='colecciones.html'">Ver Colección</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: SUMMARY -->
+    <div class="summary-side">
+      <h2 class="summary-title">Resumen</h2>
+
+      <div class="summary-lines">
+        <div class="summary-line">
+          <span class="label">Subtotal</span>
+          <span class="val" id="subtotal">₡60,500</span>
+        </div>
+        <div class="summary-line">
+          <span class="label">Envío</span>
+          <span class="val">Gratis</span>
+        </div>
+        <div class="summary-line">
+          <span class="label">Descuento</span>
+          <span class="val" id="discount">— </span>
+        </div>
+        <div class="summary-line total">
+          <span class="label">Total</span>
+          <span class="val" id="total">₡60,500</span>
+        </div>
+      </div>
+
+      <div class="promo-wrap">
+        <input class="promo-input" type="text" placeholder="Código de descuento" id="promoInput" />
+        <button class="promo-btn" onclick="applyPromo()">Aplicar</button>
+      </div>
+
+      <button class="btn-checkout">Proceder al pago</button>
+      <button class="btn-continue" onclick="window.location.href='colecciones.html'">Seguir comprando</button>
+
+      <div class="trust-badges">
+        <div class="badge-item">
+          <span class="badge-icon">✓</span>
+          Pago seguro garantizado
+        </div>
+        <div class="badge-item">
+          <span class="badge-icon">↩</span>
+          Devoluciones en 30 días
+        </div>
+        <div class="badge-item">
+          <span class="badge-icon">◈</span>
+          Calidad premium garantizada
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx - 5 + 'px';
+      cursor.style.top = my - 5 + 'px';
+    });
+    (function animRing() {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.left = rx - 18 + 'px';
+      ring.style.top = ry - 18 + 'px';
+      requestAnimationFrame(animRing);
+    })();
+
+    // Cart logic
+    function getTotal() {
+      let total = 0;
+      document.querySelectorAll('.cart-item').forEach(item => {
+        const price = parseInt(item.dataset.price);
+        const qty = parseInt(item.querySelector('.qty-val').textContent);
+        total += price * qty;
+      });
+      return total;
+    }
+
+    function formatPrice(n) {
+      return '₡' + n.toLocaleString('es-CR');
+    }
+
+    let discountApplied = false;
+
+    function updateSummary() {
+      const items = document.querySelectorAll('.cart-item');
+      const count = items.length;
+      document.getElementById('itemCount').textContent = count + (count === 1 ? ' prenda' : ' prendas');
+
+      const sub = getTotal();
+      document.getElementById('subtotal').textContent = formatPrice(sub);
+
+      let disc = 0;
+      if (discountApplied) { disc = Math.round(sub * 0.1); }
+      document.getElementById('discount').textContent = disc ? '− ' + formatPrice(disc) : '—';
+      document.getElementById('total').textContent = formatPrice(sub - disc);
+
+      if (count === 0) {
+        document.getElementById('cartEmpty').style.display = 'flex';
+        document.getElementById('cartItems').style.display = 'none';
+      }
+    }
+
+    function changeQty(btn, delta) {
+      const valEl = btn.parentElement.querySelector('.qty-val');
+      let val = parseInt(valEl.textContent) + delta;
+      if (val < 1) val = 1;
+      valEl.textContent = val;
+
+      // Update item price display
+      const item = btn.closest('.cart-item');
+      const price = parseInt(item.dataset.price);
+      item.querySelector('.item-price').textContent = formatPrice(price * val);
+      updateSummary();
+    }
+
+    function removeItem(btn) {
+      const item = btn.closest('.cart-item');
+      item.style.transition = 'opacity 0.4s, transform 0.4s';
+      item.style.opacity = '0';
+      item.style.transform = 'translateX(20px)';
+      setTimeout(() => { item.remove(); updateSummary(); }, 400);
+    }
+
+    function applyPromo() {
+      const code = document.getElementById('promoInput').value.trim().toUpperCase();
+      if (code === 'RUAH25' || code === 'RUAH') {
+        discountApplied = true;
+        document.getElementById('promoInput').style.color = '#c8b89a';
+        updateSummary();
+      } else {
+        document.getElementById('promoInput').style.color = '#ff6b6b';
+        setTimeout(() => document.getElementById('promoInput').style.color = '', 1200);
+      }
+    }
+
+    updateSummary();
+  </script>
+</body>
+</html>
