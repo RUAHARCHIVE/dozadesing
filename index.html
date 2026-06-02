@@ -198,6 +198,17 @@
       pointer-events: none;
     }
   </style>
+
+  <!-- ✅ Import map: le dice al navegador dónde encontrar "three" como módulo -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+      "three/examples/jsm/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js",
+      "three/examples/jsm/loaders/DRACOLoader.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/DRACOLoader.js"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -227,15 +238,11 @@
     </div>
   </section>
 
-  <!-- Three.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script>
-  // ── Minimal GLTFLoader inlined ──────────────────────────────────────────────
-  // We load it from CDN via dynamic import
-  </script>
+  <!-- ✅ Todo en un único script type="module", sin el <script src> de three.min.js -->
   <script type="module">
-    import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js";
-    import { DRACOLoader } from "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/DRACOLoader.js";
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
     // Scene setup
     const container = document.getElementById('canvas-container');
@@ -280,6 +287,7 @@
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/');
     loader.setDRACOLoader(dracoLoader);
+
     loader.load('camisa.glb', (gltf) => {
       model = gltf.scene;
 
@@ -292,26 +300,21 @@
       model.scale.setScalar(scale);
       model.position.sub(center.multiplyScalar(scale));
 
-      // Slight tilt
       model.rotation.x = 0.1;
-
       scene.add(model);
 
-      // Hide loader
       setTimeout(() => {
         document.getElementById('loader').classList.add('hidden');
       }, 200);
     },
-    (xhr) => {
-      // progress
-    },
+    undefined,
     (err) => {
       console.error('GLB error:', err);
       document.getElementById('loader').classList.add('hidden');
     });
 
     // Floating animation vars
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     // Resize
     window.addEventListener('resize', () => {
@@ -326,11 +329,8 @@
       const t = clock.getElapsedTime();
 
       if (model) {
-        // Slow Y rotation
         model.rotation.y = t * 0.4;
-        // Floating up/down
         model.position.y = Math.sin(t * 0.8) * 0.08;
-        // Subtle tilt with mouse
         model.rotation.x = 0.1 + mouseY * 0.08;
         model.rotation.z = -mouseX * 0.05;
       }
