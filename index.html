@@ -93,7 +93,6 @@
       position: absolute;
       inset: 0;
       z-index: 3;
-      /* Asegura que el canvas ocupe todo el espacio */
     }
 
     canvas {
@@ -340,8 +339,8 @@
   <nav>
     <div class="logo">RUAH</div>
     <ul class="nav-links">
-      <li><a href="#">Colección</a></li>
-      <li><a href="#">Cotizar</a></li>
+      <li><a href="colecciones.html">Colección</a></li>
+      <li><a href="carrito.html">Cotizar</a></li>
       <li><a href="#">Nosotros</a></li>
     </ul>
   </nav>
@@ -399,12 +398,12 @@
 
     // ─── CÁMARA más alejada para ver la prenda COMPLETA ───
     const camera = new THREE.PerspectiveCamera(
-      40,                                          // FOV más cerrado = menos distorsión
+      40,
       container.clientWidth / container.clientHeight,
       0.1,
       100
     );
-    camera.position.set(0, 0.05, 4.5);            // Z más lejos: prenda entera visible
+    camera.position.set(0, 0.05, 4.5);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -415,25 +414,20 @@
     container.appendChild(renderer.domElement);
 
     // ─── ILUMINACIÓN CINEMATOGRÁFICA ───────────────────────
-    // Luz ambiente baja
     scene.add(new THREE.AmbientLight(0xffffff, 0.25));
 
-    // Key light — principal desde arriba-frente
     const key = new THREE.DirectionalLight(0xffffff, 3.5);
     key.position.set(1, 5, 4);
     scene.add(key);
 
-    // Fill light — azulado desde la izquierda
     const fill = new THREE.DirectionalLight(0x8aafff, 1.2);
     fill.position.set(-4, 1, 2);
     scene.add(fill);
 
-    // Rim light — cálido desde atrás-abajo (como la foto de Adidas)
     const rim = new THREE.DirectionalLight(0xff8855, 0.8);
     rim.position.set(0, -3, -4);
     scene.add(rim);
 
-    // Spot de abajo — rebote de suelo
     const ground = new THREE.DirectionalLight(0xffffff, 0.4);
     ground.position.set(0, -5, 2);
     scene.add(ground);
@@ -457,23 +451,19 @@
       (gltf) => {
         model = gltf.scene;
 
-        // Centrar y escalar — cabe entero en pantalla
         const box    = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
         const size   = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
 
-        // Escala conservadora: 1.4 / maxDim asegura que la prenda entre completa
         const scale  = 1.4 / maxDim;
         model.scale.setScalar(scale);
         model.position.sub(center.multiplyScalar(scale));
 
-        // Leve inclinación inicial hacia el espectador
         model.rotation.x = 0.05;
 
         scene.add(model);
 
-        // Ocultar loader después de cargar
         setTimeout(() => {
           document.getElementById('loader').classList.add('hidden');
         }, 300);
@@ -499,16 +489,12 @@
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
 
-      // Suavizar el parallax
       currentX += (targetX - currentX) * 0.04;
       currentY += (targetY - currentY) * 0.04;
 
       if (model) {
-        // Rotación lenta en Y (showcase) + parallax sutil
         model.rotation.y  = t * 0.25 + currentX * 0.12;
-        // Float vertical suave
         model.position.y  = Math.sin(t * 0.7) * 0.06;
-        // Leve tilt con el ratón
         model.rotation.x  = 0.05 + currentY * 0.06;
         model.rotation.z  = -currentX * 0.03;
       }
