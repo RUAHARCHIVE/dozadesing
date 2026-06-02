@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RUAH — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #080808;
+      --white: #f0ede8;
+      --grey: #111;
+      --mid: #1a1a1a;
+      --border: rgba(240,237,232,0.1);
+      --accent: #c8b89a;
+      --muted: #555;
+      --danger: #c0392b;
+      --success: #27ae60;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px;
+      background: rgba(8,8,8,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: 0.1em;
+      color: var(--white); text-decoration: none;
+    }
+    .nav-tag {
+      font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(200,184,154,0.3);
+      padding: 4px 10px;
+    }
+    .nav-back {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none;
+      transition: color 0.3s;
+    }
+    .nav-back:hover { color: var(--white); }
+
+    /* ── CONFIG BANNER ── */
+    #config-banner {
+      background: rgba(200,184,154,0.08);
+      border: 1px solid rgba(200,184,154,0.25);
+      padding: 20px 48px;
+      display: flex; align-items: flex-start; gap: 16px;
+    }
+    #config-banner.hidden { display: none; }
+    .banner-icon { font-size: 20px; margin-top: 2px; }
+    .banner-body { flex: 1; }
+    .banner-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px; letter-spacing: 0.1em;
+      color: var(--accent); margin-bottom: 8px;
+    }
+    .banner-text {
+      font-size: 12px; line-height: 1.7; color: rgba(240,237,232,0.6);
+      letter-spacing: 0.02em;
+    }
+    .banner-text code {
+      background: rgba(200,184,154,0.15);
+      padding: 2px 6px; font-family: monospace; font-size: 11px;
+      color: var(--accent);
+    }
+    .config-fields {
+      display: flex; flex-direction: column; gap: 10px;
+      margin-top: 14px;
+    }
+    .config-row {
+      display: flex; gap: 10px; align-items: center;
+    }
+    .config-row label {
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); min-width: 120px;
+    }
+    .config-input {
+      flex: 1; background: var(--mid); border: 1px solid var(--border);
+      color: var(--white); padding: 8px 12px; font-size: 12px;
+      font-family: monospace; outline: none;
+      transition: border-color 0.3s;
+    }
+    .config-input:focus { border-color: var(--accent); }
+    .btn-save-config {
+      margin-top: 12px;
+      background: var(--accent); color: var(--black);
+      border: none; padding: 10px 24px;
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      font-family: 'Barlow', sans-serif; font-weight: 600;
+      cursor: pointer; transition: opacity 0.3s;
+    }
+    .btn-save-config:hover { opacity: 0.8; }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 0;
+      min-height: calc(100vh - 65px);
+    }
+
+    /* ── FORM PANEL ── */
+    .form-panel {
+      background: var(--grey);
+      border-right: 1px solid var(--border);
+      padding: 40px 36px;
+      position: sticky; top: 65px;
+      height: calc(100vh - 65px);
+      overflow-y: auto;
+    }
+    .panel-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px; letter-spacing: 0.08em;
+      color: var(--white); margin-bottom: 32px;
+    }
+    .panel-title span { color: var(--accent); }
+
+    .field { margin-bottom: 22px; }
+    .field label {
+      display: block;
+      font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      background: var(--mid); border: 1px solid var(--border);
+      color: var(--white); padding: 12px 14px;
+      font-size: 13px; font-family: 'Barlow', sans-serif; font-weight: 300;
+      outline: none; resize: none;
+      transition: border-color 0.3s;
+    }
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus { border-color: var(--accent); }
+    .field select option { background: var(--mid); }
+
+    .field-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* Foto upload */
+    .upload-zone {
+      border: 1px dashed rgba(240,237,232,0.2);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s, background 0.3s;
+      position: relative;
+    }
+    .upload-zone:hover {
+      border-color: var(--accent);
+      background: rgba(200,184,154,0.04);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0;
+      cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.4; }
+    .upload-text {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .upload-sub {
+      font-size: 10px; color: var(--muted); margin-top: 6px; opacity: 0.6;
+    }
+
+    .preview-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-top: 12px;
+    }
+    .preview-img {
+      aspect-ratio: 1; object-fit: cover;
+      position: relative;
+    }
+    .preview-item {
+      position: relative;
+    }
+    .preview-item img {
+      width: 100%; aspect-ratio: 1; object-fit: cover;
+    }
+    .preview-remove {
+      position: absolute; top: 4px; right: 4px;
+      width: 20px; height: 20px;
+      background: rgba(8,8,8,0.85);
+      border: none; color: var(--white);
+      font-size: 12px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .preview-item:hover .preview-remove { opacity: 1; }
+
+    /* Badge nuevo / exclusivo */
+    .badge-options {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .badge-opt {
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      color: var(--muted); cursor: pointer;
+      transition: all 0.3s;
+      user-select: none;
+    }
+    .badge-opt.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Botones */
+    .btn-primary {
+      width: 100%;
+      background: var(--white); color: var(--black);
+      border: none; padding: 16px;
+      font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase;
+      font-family: 'Barlow', sans-serif; font-weight: 600;
+      cursor: pointer; transition: opacity 0.3s;
+      margin-top: 8px;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-secondary {
+      width: 100%;
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border); padding: 12px;
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      font-family: 'Barlow', sans-serif;
+      cursor: pointer; transition: all 0.3s;
+      margin-top: 8px;
+    }
+    .btn-secondary:hover { border-color: var(--muted); color: var(--white); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 32px; right: 32px;
+      padding: 14px 24px;
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      z-index: 9999;
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: var(--success); color: #fff; }
+    .toast.error { background: var(--danger); color: #fff; }
+
+    /* Progress */
+    .upload-progress {
+      width: 100%; height: 2px;
+      background: var(--mid); margin-top: 10px;
+      overflow: hidden; display: none;
+    }
+    .upload-progress.show { display: block; }
+    .progress-bar {
+      height: 100%; background: var(--accent);
+      width: 0%; transition: width 0.3s;
+    }
+
+    /* ── PRODUCTS PANEL ── */
+    .products-panel {
+      padding: 40px 48px;
+      overflow-y: auto;
+    }
+    .products-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .products-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px; letter-spacing: 0.08em;
+    }
+    .products-count {
+      font-size: 11px; letter-spacing: 0.2em;
+      color: var(--muted);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 80px 40px;
+      border: 1px dashed var(--border);
+    }
+    .empty-icon { font-size: 48px; opacity: 0.2; margin-bottom: 16px; }
+    .empty-text {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Product table */
+    .product-table { width: 100%; border-collapse: collapse; }
+    .product-table th {
+      font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--muted); text-align: left;
+      padding: 0 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .product-table td {
+      padding: 16px 12px;
+      border-bottom: 1px solid rgba(240,237,232,0.04);
+      vertical-align: middle;
+    }
+    .product-table tr:hover td { background: rgba(240,237,232,0.02); }
+
+    .td-img img {
+      width: 48px; height: 48px; object-fit: cover;
+    }
+    .td-img .no-img {
+      width: 48px; height: 48px;
+      background: var(--mid);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; opacity: 0.3;
+    }
+    .td-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px; letter-spacing: 0.06em;
+    }
+    .td-code {
+      font-size: 10px; font-family: monospace;
+      color: var(--accent);
+    }
+    .td-cat {
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .td-price {
+      font-size: 13px; color: var(--accent);
+    }
+    .td-badge span {
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 3px 8px;
+      border: 1px solid rgba(200,184,154,0.4);
+      color: var(--accent);
+    }
+    .td-actions { display: flex; gap: 8px; }
+    .btn-edit, .btn-del {
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 6px 12px; border: none; cursor: pointer;
+      font-family: 'Barlow', sans-serif; transition: opacity 0.3s;
+    }
+    .btn-edit { background: var(--mid); color: var(--white); }
+    .btn-edit:hover { opacity: 0.7; }
+    .btn-del { background: rgba(192,57,43,0.15); color: #e74c3c; }
+    .btn-del:hover { background: rgba(192,57,43,0.3); }
+
+    /* Loading spinner */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(240,237,232,0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block; vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    ::-webkit-scrollbar { width: 2px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">RUAH</a>
+    <span class="nav-tag">Panel Admin</span>
+    <a href="colecciones.html" class="nav-back">← Ver colección</a>
+  </nav>
+
+  <!-- CONFIG BANNER -->
+  <div id="config-banner">
+    <div class="banner-icon">⚙️</div>
+    <div class="banner-body">
+      <div class="banner-title">Configurar Supabase</div>
+      <div class="banner-text">
+        Para conectar con tu base de datos, necesitas ingresar tus credenciales de Supabase una sola vez.<br/>
+        Ve a <code>supabase.com</code> → tu proyecto → <code>Settings → API</code> y copia:<br/>
+        <strong>Project URL</strong> y <strong>anon/public key</strong>.<br/><br/>
+        Luego crea una tabla <code>productos</code> con este SQL en el <strong>SQL Editor</strong> de Supabase:
+        <br/><br/>
+        <code>create table productos (id uuid default gen_random_uuid() primary key, nombre text, codigo text, categoria text, precio numeric, descripcion text, badge text, imagenes text[], created_at timestamptz default now());</code>
+        <br/><br/>
+        Y en <strong>Storage</strong>, crea un bucket llamado <code>productos</code> y ponlo en modo <strong>público</strong>.
+      </div>
+      <div class="config-fields">
+        <div class="config-row">
+          <label>Project URL</label>
+          <input class="config-input" id="sb-url" type="text" placeholder="https://xxxx.supabase.co" />
+        </div>
+        <div class="config-row">
+          <label>Anon Key</label>
+          <input class="config-input" id="sb-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIs..." />
+        </div>
+      </div>
+      <button class="btn-save-config" onclick="saveConfig()">Guardar y conectar</button>
+    </div>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="layout">
+
+    <!-- FORM -->
+    <aside class="form-panel">
+      <div class="panel-title" id="form-title">Nuevo <span>Producto</span></div>
+
+      <input type="hidden" id="edit-id" />
+
+      <div class="field">
+        <label>Nombre del producto</label>
+        <input type="text" id="f-nombre" placeholder="Essential Tee Blanco" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Código</label>
+          <input type="text" id="f-codigo" placeholder="RH-001" />
+        </div>
+        <div class="field">
+          <label>Precio (₡)</label>
+          <input type="number" id="f-precio" placeholder="18500" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Categoría</label>
+        <select id="f-categoria">
+          <option value="">Seleccionar categoría</option>
+          <option value="Camiseta">Camiseta</option>
+          <option value="Hoodie">Hoodie</option>
+          <option value="Pantalón">Pantalón</option>
+          <option value="Accesorio">Accesorio</option>
+          <option value="Pack">Pack / Set</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Descripción (opcional)</label>
+        <textarea id="f-descripcion" rows="3" placeholder="Descripción breve del producto..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Badge</label>
+        <div class="badge-options">
+          <div class="badge-opt" data-val="">Ninguno</div>
+          <div class="badge-opt" data-val="Nuevo">Nuevo</div>
+          <div class="badge-opt" data-val="Exclusivo">Exclusivo</div>
+          <div class="badge-opt" data-val="Edición Limitada">Ed. Limitada</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Fotos del producto</label>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="f-fotos" accept="image/*" multiple />
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Arrastra fotos o haz clic</div>
+          <div class="upload-sub">JPG, PNG, WEBP — Máx 5MB cada una</div>
+        </div>
+        <div class="upload-progress" id="upload-progress">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="preview-grid" id="preview-grid"></div>
+      </div>
+
+      <button class="btn-primary" id="btn-submit" onclick="submitProduct()">
+        Publicar producto
+      </button>
+      <button class="btn-secondary" id="btn-cancel" onclick="cancelEdit()" style="display:none">
+        Cancelar edición
+      </button>
+    </aside>
+
+    <!-- PRODUCTS LIST -->
+    <main class="products-panel">
+      <div class="products-header">
+        <div class="products-title">Productos Publicados</div>
+        <span class="products-count" id="products-count">—</span>
+      </div>
+      <div id="products-container">
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <div class="empty-text">Configura Supabase para ver los productos</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ═══════════════════════════════════════
+    //  CONFIG
+    // ═══════════════════════════════════════
+    let SUPABASE_URL = localStorage.getItem('ruah_sb_url') || '';
+    let SUPABASE_KEY = localStorage.getItem('ruah_sb_key') || '';
+
+    if (SUPABASE_URL) document.getElementById('sb-url').value = SUPABASE_URL;
+    if (SUPABASE_KEY) document.getElementById('sb-key').value = SUPABASE_KEY;
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      document.getElementById('config-banner').classList.add('hidden');
+      loadProducts();
+    }
+
+    function saveConfig() {
+      SUPABASE_URL = document.getElementById('sb-url').value.trim().replace(/\/$/, '');
+      SUPABASE_KEY = document.getElementById('sb-key').value.trim();
+      if (!SUPABASE_URL || !SUPABASE_KEY) { showToast('Ingresa URL y Key', 'error'); return; }
+      localStorage.setItem('ruah_sb_url', SUPABASE_URL);
+      localStorage.setItem('ruah_sb_key', SUPABASE_KEY);
+      document.getElementById('config-banner').classList.add('hidden');
+      showToast('Conectado a Supabase ✓', 'success');
+      loadProducts();
+    }
+
+    // ═══════════════════════════════════════
+    //  SUPABASE HELPERS
+    // ═══════════════════════════════════════
+    async function sbFetch(path, options = {}) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        ...options,
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+          ...options.headers
+        }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Error ${res.status}`);
+      }
+      return res.status === 204 ? null : res.json();
+    }
+
+    async function uploadImage(file) {
+      const ext = file.name.split('.').pop();
+      const filename = `${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
+      const res = await fetch(
+        `${SUPABASE_URL}/storage/v1/object/productos/${filename}`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': file.type,
+            'Cache-Control': '3600'
+          },
+          body: file
+        }
+      );
+      if (!res.ok) throw new Error('Error subiendo imagen');
+      return `${SUPABASE_URL}/storage/v1/object/public/productos/${filename}`;
+    }
+
+    // ═══════════════════════════════════════
+    //  STATE
+    // ═══════════════════════════════════════
+    let selectedBadge = '';
+    let previewFiles = [];   // { file, url }
+    let existingUrls = [];   // URLs ya guardadas (en modo edición)
+
+    // Badge selector
+    document.querySelectorAll('.badge-opt').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.badge-opt').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        selectedBadge = el.dataset.val;
+      });
+    });
+    // Default: ninguno activo
+    document.querySelector('.badge-opt[data-val=""]').classList.add('active');
+
+    // Foto preview
+    document.getElementById('f-fotos').addEventListener('change', function() {
+      Array.from(this.files).forEach(file => {
+        if (previewFiles.length >= 5) return;
+        const url = URL.createObjectURL(file);
+        previewFiles.push({ file, url });
+      });
+      renderPreviews();
+      this.value = '';
+    });
+
+    function renderPreviews() {
+      const grid = document.getElementById('preview-grid');
+      grid.innerHTML = '';
+      // Existing (edit mode)
+      existingUrls.forEach((url, i) => {
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        item.innerHTML = `<img src="${url}" /><button class="preview-remove" onclick="removeExisting(${i})">✕</button>`;
+        grid.appendChild(item);
+      });
+      // New files
+      previewFiles.forEach((p, i) => {
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        item.innerHTML = `<img src="${p.url}" /><button class="preview-remove" onclick="removePreview(${i})">✕</button>`;
+        grid.appendChild(item);
+      });
+    }
+
+    function removePreview(i) {
+      previewFiles.splice(i, 1);
+      renderPreviews();
+    }
+
+    function removeExisting(i) {
+      existingUrls.splice(i, 1);
+      renderPreviews();
+    }
+
+    // ═══════════════════════════════════════
+    //  SUBMIT
+    // ═══════════════════════════════════════
+    async function submitProduct() {
+      if (!SUPABASE_URL || !SUPABASE_KEY) { showToast('Configura Supabase primero', 'error'); return; }
+
+      const nombre    = document.getElementById('f-nombre').value.trim();
+      const codigo    = document.getElementById('f-codigo').value.trim();
+      const precio    = parseFloat(document.getElementById('f-precio').value);
+      const categoria = document.getElementById('f-categoria').value;
+      const descripcion = document.getElementById('f-descripcion').value.trim();
+      const editId    = document.getElementById('edit-id').value;
+
+      if (!nombre || !codigo || !precio || !categoria) {
+        showToast('Completa nombre, código, precio y categoría', 'error'); return;
+      }
+
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Publicando...';
+
+      try {
+        // Subir imágenes nuevas
+        let newUrls = [];
+        if (previewFiles.length > 0) {
+          const prog = document.getElementById('upload-progress');
+          const bar  = document.getElementById('progress-bar');
+          prog.classList.add('show');
+          for (let i = 0; i < previewFiles.length; i++) {
+            const url = await uploadImage(previewFiles[i].file);
+            newUrls.push(url);
+            bar.style.width = `${((i+1)/previewFiles.length)*100}%`;
+          }
+          setTimeout(() => { prog.classList.remove('show'); bar.style.width = '0%'; }, 600);
+        }
+
+        const imagenes = [...existingUrls, ...newUrls];
+        const payload  = { nombre, codigo, categoria, precio, descripcion, badge: selectedBadge, imagenes };
+
+        if (editId) {
+          await sbFetch(`productos?id=eq.${editId}`, {
+            method: 'PATCH', body: JSON.stringify(payload)
+          });
+          showToast('Producto actualizado ✓', 'success');
+        } else {
+          await sbFetch('productos', { method: 'POST', body: JSON.stringify(payload) });
+          showToast('Producto publicado ✓', 'success');
+        }
+
+        resetForm();
+        loadProducts();
+      } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = document.getElementById('edit-id').value ? 'Actualizar producto' : 'Publicar producto';
+      }
+    }
+
+    // ═══════════════════════════════════════
+    //  LOAD PRODUCTS
+    // ═══════════════════════════════════════
+    async function loadProducts() {
+      if (!SUPABASE_URL || !SUPABASE_KEY) return;
+      const container = document.getElementById('products-container');
+      container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:0.2em">CARGANDO...</div>';
+      try {
+        const data = await sbFetch('productos?order=created_at.desc&select=*');
+        document.getElementById('products-count').textContent = `${data.length} producto${data.length !== 1 ? 's' : ''}`;
+        if (data.length === 0) {
+          container.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">Sin productos aún — ¡crea el primero!</div></div>`;
+          return;
+        }
+        container.innerHTML = `
+          <table class="product-table">
+            <thead><tr>
+              <th>Foto</th><th>Nombre</th><th>Código</th>
+              <th>Categoría</th><th>Precio</th><th>Badge</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="tb"></tbody>
+          </table>`;
+        const tb = document.getElementById('tb');
+        data.forEach(p => {
+          const img = p.imagenes && p.imagenes.length
+            ? `<img src="${p.imagenes[0]}" />`
+            : `<div class="no-img">📷</div>`;
+          const badge = p.badge ? `<span>${p.badge}</span>` : '—';
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="td-img">${img}</td>
+            <td class="td-name">${p.nombre}</td>
+            <td class="td-code">${p.codigo}</td>
+            <td class="td-cat">${p.categoria}</td>
+            <td class="td-price">₡${Number(p.precio).toLocaleString('es-CR')}</td>
+            <td class="td-badge">${badge}</td>
+            <td class="td-actions">
+              <button class="btn-edit" onclick='editProduct(${JSON.stringify(p)})'>Editar</button>
+              <button class="btn-del" onclick="deleteProduct('${p.id}')">Eliminar</button>
+            </td>`;
+          tb.appendChild(row);
+        });
+      } catch(e) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-text" style="color:#e74c3c">Error: ${e.message}</div></div>`;
+      }
+    }
+
+    // ═══════════════════════════════════════
+    //  EDIT / DELETE
+    // ═══════════════════════════════════════
+    function editProduct(p) {
+      document.getElementById('edit-id').value = p.id;
+      document.getElementById('f-nombre').value = p.nombre || '';
+      document.getElementById('f-codigo').value = p.codigo || '';
+      document.getElementById('f-precio').value = p.precio || '';
+      document.getElementById('f-categoria').value = p.categoria || '';
+      document.getElementById('f-descripcion').value = p.descripcion || '';
+
+      selectedBadge = p.badge || '';
+      document.querySelectorAll('.badge-opt').forEach(b => {
+        b.classList.toggle('active', b.dataset.val === selectedBadge);
+      });
+
+      existingUrls = p.imagenes ? [...p.imagenes] : [];
+      previewFiles = [];
+      renderPreviews();
+
+      document.getElementById('form-title').innerHTML = 'Editar <span>Producto</span>';
+      document.getElementById('btn-submit').textContent = 'Actualizar producto';
+      document.getElementById('btn-cancel').style.display = 'block';
+
+      document.querySelector('.form-panel').scrollTop = 0;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('¿Eliminar este producto?')) return;
+      try {
+        await sbFetch(`productos?id=eq.${id}`, { method: 'DELETE' });
+        showToast('Producto eliminado', 'success');
+        loadProducts();
+      } catch(e) {
+        showToast('Error al eliminar', 'error');
+      }
+    }
+
+    function cancelEdit() { resetForm(); }
+
+    function resetForm() {
+      document.getElementById('edit-id').value = '';
+      document.getElementById('f-nombre').value = '';
+      document.getElementById('f-codigo').value = '';
+      document.getElementById('f-precio').value = '';
+      document.getElementById('f-categoria').value = '';
+      document.getElementById('f-descripcion').value = '';
+      selectedBadge = '';
+      previewFiles = [];
+      existingUrls = [];
+      renderPreviews();
+      document.querySelectorAll('.badge-opt').forEach(b => b.classList.remove('active'));
+      document.querySelector('.badge-opt[data-val=""]').classList.add('active');
+      document.getElementById('form-title').innerHTML = 'Nuevo <span>Producto</span>';
+      document.getElementById('btn-submit').textContent = 'Publicar producto';
+      document.getElementById('btn-cancel').style.display = 'none';
+    }
+
+    // ═══════════════════════════════════════
+    //  TOAST
+    // ═══════════════════════════════════════
+    function showToast(msg, type='success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type} show`;
+      setTimeout(() => t.classList.remove('show'), 3200);
+    }
+  </script>
+</body>
+</html>
