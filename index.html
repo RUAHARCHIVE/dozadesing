@@ -26,7 +26,6 @@
       justify-content: space-between;
       align-items: center;
       padding: 28px 60px;
-      mix-blend-mode: normal;
     }
 
     .logo {
@@ -64,10 +63,37 @@
       overflow: hidden;
     }
 
+    /* Fondo atmosférico — gradiente dramático tipo estudio */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 80% at 50% 30%, rgba(38,38,38,0.9) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 50% at 30% 60%, rgba(20,20,40,0.6) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 50% at 70% 60%, rgba(40,20,20,0.4) 0%, transparent 60%),
+        #080808;
+    }
+
+    /* Líneas decorativas laterales */
+    .hero-line-left,
+    .hero-line-right {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+      z-index: 2;
+    }
+    .hero-line-left  { left: 60px; }
+    .hero-line-right { right: 60px; }
+
+    /* Canvas 3D */
     #canvas-container {
       position: absolute;
       inset: 0;
-      z-index: 1;
+      z-index: 3;
+      /* Asegura que el canvas ocupe todo el espacio */
     }
 
     canvas {
@@ -76,38 +102,114 @@
       height: 100% !important;
     }
 
+    /* Vignette sobre el canvas */
+    .hero-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(8,8,8,0.85) 100%);
+    }
+
+    /* Texto del hero — debajo de la prenda */
     .hero-text {
       position: absolute;
-      z-index: 10;
+      z-index: 5;
       text-align: center;
+      pointer-events: none;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+    }
+
+    .hero-sub {
+      font-size: 0.65rem;
+      letter-spacing: 0.6em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 10px;
+    }
+
+    /* Título detrás del modelo */
+    .hero-title-bg {
+      position: absolute;
+      z-index: 2;
       pointer-events: none;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: 100%;
+      text-align: center;
     }
 
     .hero-title {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(8rem, 20vw, 18rem);
-      letter-spacing: 0.15em;
+      font-size: clamp(9rem, 22vw, 20rem);
+      letter-spacing: 0.12em;
       color: transparent;
-      -webkit-text-stroke: 1px rgba(255,255,255,0.12);
+      -webkit-text-stroke: 1px rgba(255,255,255,0.07);
       line-height: 1;
       user-select: none;
     }
 
-    .hero-sub {
-      font-size: 0.7rem;
-      letter-spacing: 0.5em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.35);
-      margin-top: 16px;
+    /* Badge lateral */
+    .hero-badge {
+      position: absolute;
+      left: 60px;
+      bottom: 50%;
+      transform: translateY(50%);
+      z-index: 6;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
+    .badge-line {
+      width: 30px;
+      height: 1px;
+      background: rgba(255,255,255,0.3);
+    }
+
+    .badge-text {
+      font-size: 0.55rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      writing-mode: vertical-lr;
+      transform: rotate(180deg);
+      margin-top: 8px;
+    }
+
+    /* Número de edición */
+    .hero-edition {
+      position: absolute;
+      right: 60px;
+      bottom: 50%;
+      transform: translateY(50%);
+      z-index: 6;
+      text-align: right;
+    }
+
+    .edition-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255,255,255,0.12);
+      line-height: 1;
+    }
+
+    .edition-label {
+      font-size: 0.55rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* Scroll hint */
     .scroll-hint {
       position: absolute;
-      bottom: 40px;
+      bottom: 36px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
@@ -119,26 +221,26 @@
     }
 
     .scroll-hint span {
-      font-size: 0.6rem;
-      letter-spacing: 0.3em;
+      font-size: 0.58rem;
+      letter-spacing: 0.35em;
       text-transform: uppercase;
     }
 
     .scroll-line {
       width: 1px;
-      height: 50px;
+      height: 44px;
       background: linear-gradient(to bottom, #fff, transparent);
       animation: scrollAnim 1.8s ease-in-out infinite;
     }
 
     @keyframes scrollAnim {
-      0% { transform: scaleY(0); transform-origin: top; }
-      50% { transform: scaleY(1); transform-origin: top; }
-      51% { transform: scaleY(1); transform-origin: bottom; }
+      0%   { transform: scaleY(0); transform-origin: top; }
+      50%  { transform: scaleY(1); transform-origin: top; }
+      51%  { transform: scaleY(1); transform-origin: bottom; }
       100% { transform: scaleY(0); transform-origin: bottom; }
     }
 
-    /* GRAIN overlay */
+    /* Grain overlay */
     body::after {
       content: '';
       position: fixed;
@@ -146,10 +248,10 @@
       pointer-events: none;
       z-index: 999;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      opacity: 0.4;
+      opacity: 0.35;
     }
 
-    /* Loading screen */
+    /* Loader */
     #loader {
       position: fixed;
       inset: 0;
@@ -189,17 +291,35 @@
       animation: loadBar 1.8s ease forwards;
     }
 
-    @keyframes loadBar {
-      to { left: 0; }
-    }
+    @keyframes loadBar { to { left: 0; } }
 
     #loader.hidden {
       opacity: 0;
       pointer-events: none;
     }
+
+    /* Animación de entrada del hero */
+    .hero-badge,
+    .hero-edition,
+    .hero-text,
+    .scroll-hint {
+      opacity: 0;
+      animation: fadeUp 1s ease forwards;
+    }
+    .hero-badge    { animation-delay: 0.2s; }
+    .hero-edition  { animation-delay: 0.4s; }
+    .hero-text     { animation-delay: 0.6s; }
+    .scroll-hint   { animation-delay: 1s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px) translateX(var(--tx, 0)); }
+      to   { opacity: 1; transform: translateY(0)    translateX(var(--tx, 0)); }
+    }
+
+    .hero-text { --tx: -50%; }
+    .scroll-hint { --tx: -50%; }
   </style>
 
-  <!-- ✅ Import map: le dice al navegador dónde encontrar "three" como módulo -->
   <script type="importmap">
   {
     "imports": {
@@ -227,112 +347,170 @@
   </nav>
 
   <section id="hero">
-    <div id="canvas-container"></div>
-    <div class="hero-text">
+    <!-- Fondo atmosférico -->
+    <div class="hero-bg"></div>
+
+    <!-- Líneas laterales decorativas -->
+    <div class="hero-line-left"></div>
+    <div class="hero-line-right"></div>
+
+    <!-- Título gigante detrás del modelo -->
+    <div class="hero-title-bg">
       <h1 class="hero-title">RUAH</h1>
-      <p class="hero-sub">Nueva Colección 2025</p>
     </div>
+
+    <!-- Canvas 3D -->
+    <div id="canvas-container"></div>
+
+    <!-- Vignette encima del canvas -->
+    <div class="hero-vignette"></div>
+
+    <!-- Badge lateral izquierdo -->
+    <div class="hero-badge">
+      <div class="badge-line"></div>
+      <span class="badge-text">Prendas Exclusivas</span>
+    </div>
+
+    <!-- Número de edición derecho -->
+    <div class="hero-edition">
+      <div class="edition-num">25</div>
+      <div class="edition-label">Edición 2025</div>
+    </div>
+
+    <!-- Subtítulo abajo -->
+    <div class="hero-text">
+      <p class="hero-sub">Nueva Colección &nbsp;·&nbsp; 2025</p>
+    </div>
+
+    <!-- Scroll -->
     <div class="scroll-hint">
       <span>Scroll</span>
       <div class="scroll-line"></div>
     </div>
   </section>
 
-  <!-- ✅ Todo en un único script type="module", sin el <script src> de three.min.js -->
   <script type="module">
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
     import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
-    // Scene setup
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-    camera.position.set(0, 0, 3);
+
+    // ─── CÁMARA más alejada para ver la prenda COMPLETA ───
+    const camera = new THREE.PerspectiveCamera(
+      40,                                          // FOV más cerrado = menos distorsión
+      container.clientWidth / container.clientHeight,
+      0.1,
+      100
+    );
+    camera.position.set(0, 0.05, 4.5);            // Z más lejos: prenda entera visible
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.4;
     container.appendChild(renderer.domElement);
 
-    // Lighting
-    const ambient = new THREE.AmbientLight(0xffffff, 0.4);
-    scene.add(ambient);
+    // ─── ILUMINACIÓN CINEMATOGRÁFICA ───────────────────────
+    // Luz ambiente baja
+    scene.add(new THREE.AmbientLight(0xffffff, 0.25));
 
-    const key = new THREE.DirectionalLight(0xffffff, 2.5);
-    key.position.set(2, 4, 3);
+    // Key light — principal desde arriba-frente
+    const key = new THREE.DirectionalLight(0xffffff, 3.5);
+    key.position.set(1, 5, 4);
     scene.add(key);
 
-    const fill = new THREE.DirectionalLight(0x8899ff, 1.0);
-    fill.position.set(-3, 0, 2);
+    // Fill light — azulado desde la izquierda
+    const fill = new THREE.DirectionalLight(0x8aafff, 1.2);
+    fill.position.set(-4, 1, 2);
     scene.add(fill);
 
-    const rim = new THREE.DirectionalLight(0xffffff, 1.5);
-    rim.position.set(0, -2, -3);
+    // Rim light — cálido desde atrás-abajo (como la foto de Adidas)
+    const rim = new THREE.DirectionalLight(0xff8855, 0.8);
+    rim.position.set(0, -3, -4);
     scene.add(rim);
 
-    // Mouse parallax
-    let mouseX = 0, mouseY = 0;
+    // Spot de abajo — rebote de suelo
+    const ground = new THREE.DirectionalLight(0xffffff, 0.4);
+    ground.position.set(0, -5, 2);
+    scene.add(ground);
+
+    // ─── PARALLAX ─────────────────────────────────────────
+    let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
     document.addEventListener('mousemove', (e) => {
-      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+      targetX = (e.clientX / window.innerWidth  - 0.5) * 2;
+      targetY = (e.clientY / window.innerHeight - 0.5) * 2;
     });
 
-    // Load GLB
+    // ─── CARGA DEL MODELO ─────────────────────────────────
     let model;
     const loader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/');
     loader.setDRACOLoader(dracoLoader);
 
-    loader.load('camisa.glb', (gltf) => {
-      model = gltf.scene;
+    loader.load(
+      'camisa.glb',
+      (gltf) => {
+        model = gltf.scene;
 
-      // Center & scale
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const scale = 1.6 / maxDim;
-      model.scale.setScalar(scale);
-      model.position.sub(center.multiplyScalar(scale));
+        // Centrar y escalar — cabe entero en pantalla
+        const box    = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size   = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
 
-      model.rotation.x = 0.1;
-      scene.add(model);
+        // Escala conservadora: 1.4 / maxDim asegura que la prenda entre completa
+        const scale  = 1.4 / maxDim;
+        model.scale.setScalar(scale);
+        model.position.sub(center.multiplyScalar(scale));
 
-      setTimeout(() => {
+        // Leve inclinación inicial hacia el espectador
+        model.rotation.x = 0.05;
+
+        scene.add(model);
+
+        // Ocultar loader después de cargar
+        setTimeout(() => {
+          document.getElementById('loader').classList.add('hidden');
+        }, 300);
+      },
+      undefined,
+      (err) => {
+        console.error('GLB error:', err);
         document.getElementById('loader').classList.add('hidden');
-      }, 200);
-    },
-    undefined,
-    (err) => {
-      console.error('GLB error:', err);
-      document.getElementById('loader').classList.add('hidden');
-    });
+      }
+    );
 
-    // Floating animation vars
     const clock = new THREE.Clock();
 
-    // Resize
+    // ─── RESIZE ────────────────────────────────────────────
     window.addEventListener('resize', () => {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
-    // Animate
+    // ─── ANIMATE ───────────────────────────────────────────
     function animate() {
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
 
+      // Suavizar el parallax
+      currentX += (targetX - currentX) * 0.04;
+      currentY += (targetY - currentY) * 0.04;
+
       if (model) {
-        model.rotation.y = t * 0.4;
-        model.position.y = Math.sin(t * 0.8) * 0.08;
-        model.rotation.x = 0.1 + mouseY * 0.08;
-        model.rotation.z = -mouseX * 0.05;
+        // Rotación lenta en Y (showcase) + parallax sutil
+        model.rotation.y  = t * 0.25 + currentX * 0.12;
+        // Float vertical suave
+        model.position.y  = Math.sin(t * 0.7) * 0.06;
+        // Leve tilt con el ratón
+        model.rotation.x  = 0.05 + currentY * 0.06;
+        model.rotation.z  = -currentX * 0.03;
       }
 
       renderer.render(scene, camera);
