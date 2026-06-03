@@ -328,9 +328,72 @@
     ::-webkit-scrollbar { width: 2px; }
     ::-webkit-scrollbar-track { background: var(--black); }
     ::-webkit-scrollbar-thumb { background: var(--muted); }
+
+    /* ── LOGIN SCREEN ── */
+    #login-screen {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--black);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #login-screen.hidden { display: none; }
+    .login-box {
+      width: 100%; max-width: 380px;
+      padding: 48px 40px;
+      border: 1px solid var(--border);
+      background: var(--grey);
+    }
+    .login-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px; letter-spacing: 0.12em;
+      color: var(--white); margin-bottom: 4px;
+    }
+    .login-sub {
+      font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 40px;
+    }
+    .login-label {
+      font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--muted); display: block; margin-bottom: 10px;
+    }
+    .login-input {
+      width: 100%;
+      background: var(--mid); border: 1px solid var(--border);
+      color: var(--white); padding: 14px 16px;
+      font-size: 18px; font-family: 'Barlow', sans-serif;
+      letter-spacing: 0.2em; outline: none;
+      transition: border-color 0.3s;
+      margin-bottom: 20px;
+    }
+    .login-input:focus { border-color: var(--accent); }
+    .login-btn {
+      width: 100%;
+      background: var(--white); color: var(--black);
+      border: none; padding: 16px;
+      font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase;
+      font-family: 'Barlow', sans-serif; font-weight: 600;
+      cursor: pointer; transition: opacity 0.3s;
+    }
+    .login-btn:hover { opacity: 0.85; }
+    .login-error {
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--danger); margin-top: 14px; text-align: center;
+      min-height: 16px; transition: opacity 0.3s;
+    }
   </style>
 </head>
 <body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="login-logo">RUAH</div>
+      <div class="login-sub">Panel Admin</div>
+      <label class="login-label">Contraseña</label>
+      <input class="login-input" type="password" id="login-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') checkPassword()" autocomplete="current-password" />
+      <button class="login-btn" onclick="checkPassword()">Ingresar</button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
 
   <!-- NAV -->
   <nav>
@@ -455,6 +518,33 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // ═══════════════════════════════════════
+    //  PASSWORD PROTECTION
+    // ═══════════════════════════════════════
+    const ADMIN_PASSWORD = 'ruah2024'; // ← cambia esta contraseña
+
+    function checkPassword() {
+      const val = document.getElementById('login-input').value;
+      if (val === ADMIN_PASSWORD) {
+        sessionStorage.setItem('ruah_auth', '1');
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('login-input').value = '';
+      } else {
+        const err = document.getElementById('login-error');
+        err.textContent = 'Contraseña incorrecta';
+        document.getElementById('login-input').value = '';
+        document.getElementById('login-input').focus();
+        setTimeout(() => err.textContent = '', 2500);
+      }
+    }
+
+    // Verificar si ya está autenticado
+    if (sessionStorage.getItem('ruah_auth') === '1') {
+      document.getElementById('login-screen').classList.add('hidden');
+    } else {
+      setTimeout(() => document.getElementById('login-input').focus(), 100);
+    }
+
     // ═══════════════════════════════════════
     //  CONFIG
     // ═══════════════════════════════════════
