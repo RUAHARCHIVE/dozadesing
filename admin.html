@@ -187,13 +187,7 @@
       display: grid; grid-template-columns: repeat(3, 1fr);
       gap: 8px; margin-top: 12px;
     }
-    .preview-img {
-      aspect-ratio: 1; object-fit: cover;
-      position: relative;
-    }
-    .preview-item {
-      position: relative;
-    }
+    .preview-item { position: relative; }
     .preview-item img {
       width: 100%; aspect-ratio: 1; object-fit: cover;
     }
@@ -208,10 +202,8 @@
     }
     .preview-item:hover .preview-remove { opacity: 1; }
 
-    /* Badge nuevo / exclusivo */
-    .badge-options {
-      display: flex; gap: 10px; flex-wrap: wrap;
-    }
+    /* Badge */
+    .badge-options { display: flex; gap: 10px; flex-wrap: wrap; }
     .badge-opt {
       font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
       padding: 6px 14px;
@@ -220,10 +212,7 @@
       transition: all 0.3s;
       user-select: none;
     }
-    .badge-opt.active {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+    .badge-opt.active { border-color: var(--accent); color: var(--accent); }
 
     /* Botones */
     .btn-primary {
@@ -269,16 +258,10 @@
       overflow: hidden; display: none;
     }
     .upload-progress.show { display: block; }
-    .progress-bar {
-      height: 100%; background: var(--accent);
-      width: 0%; transition: width 0.3s;
-    }
+    .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
 
     /* ── PRODUCTS PANEL ── */
-    .products-panel {
-      padding: 40px 48px;
-      overflow-y: auto;
-    }
+    .products-panel { padding: 40px 48px; overflow-y: auto; }
     .products-header {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 32px;
@@ -287,23 +270,12 @@
       font-family: 'Bebas Neue', sans-serif;
       font-size: 28px; letter-spacing: 0.08em;
     }
-    .products-count {
-      font-size: 11px; letter-spacing: 0.2em;
-      color: var(--muted);
-    }
+    .products-count { font-size: 11px; letter-spacing: 0.2em; color: var(--muted); }
 
-    /* Empty state */
-    .empty-state {
-      text-align: center; padding: 80px 40px;
-      border: 1px dashed var(--border);
-    }
+    .empty-state { text-align: center; padding: 80px 40px; border: 1px dashed var(--border); }
     .empty-icon { font-size: 48px; opacity: 0.2; margin-bottom: 16px; }
-    .empty-text {
-      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--muted);
-    }
+    .empty-text { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
 
-    /* Product table */
     .product-table { width: 100%; border-collapse: collapse; }
     .product-table th {
       font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
@@ -318,35 +290,19 @@
     }
     .product-table tr:hover td { background: rgba(240,237,232,0.02); }
 
-    .td-img img {
-      width: 48px; height: 48px; object-fit: cover;
-    }
+    .td-img img { width: 48px; height: 48px; object-fit: cover; }
     .td-img .no-img {
-      width: 48px; height: 48px;
-      background: var(--mid);
+      width: 48px; height: 48px; background: var(--mid);
       display: flex; align-items: center; justify-content: center;
       font-size: 18px; opacity: 0.3;
     }
-    .td-name {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 16px; letter-spacing: 0.06em;
-    }
-    .td-code {
-      font-size: 10px; font-family: monospace;
-      color: var(--accent);
-    }
-    .td-cat {
-      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
-      color: var(--muted);
-    }
-    .td-price {
-      font-size: 13px; color: var(--accent);
-    }
+    .td-name { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 0.06em; }
+    .td-code { font-size: 10px; font-family: monospace; color: var(--accent); }
+    .td-cat { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .td-price { font-size: 13px; color: var(--accent); }
     .td-badge span {
       font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
-      padding: 3px 8px;
-      border: 1px solid rgba(200,184,154,0.4);
-      color: var(--accent);
+      padding: 3px 8px; border: 1px solid rgba(200,184,154,0.4); color: var(--accent);
     }
     .td-actions { display: flex; gap: 8px; }
     .btn-edit, .btn-del {
@@ -359,7 +315,6 @@
     .btn-del { background: rgba(192,57,43,0.15); color: #e74c3c; }
     .btn-del:hover { background: rgba(192,57,43,0.3); }
 
-    /* Loading spinner */
     .spinner {
       width: 20px; height: 20px;
       border: 2px solid rgba(240,237,232,0.1);
@@ -392,12 +347,7 @@
       <div class="banner-text">
         Para conectar con tu base de datos, necesitas ingresar tus credenciales de Supabase una sola vez.<br/>
         Ve a <code>supabase.com</code> → tu proyecto → <code>Settings → API</code> y copia:<br/>
-        <strong>Project URL</strong> y <strong>anon/public key</strong>.<br/><br/>
-        Luego crea una tabla <code>productos</code> con este SQL en el <strong>SQL Editor</strong> de Supabase:
-        <br/><br/>
-        <code>create table productos (id uuid default gen_random_uuid() primary key, nombre text, codigo text, categoria text, precio numeric, descripcion text, badge text, imagenes text[], created_at timestamptz default now());</code>
-        <br/><br/>
-        Y en <strong>Storage</strong>, crea un bucket llamado <code>productos</code> y ponlo en modo <strong>público</strong>.
+        <strong>Project URL</strong> y <strong>anon/public key</strong>.
       </div>
       <div class="config-fields">
         <div class="config-row">
@@ -511,6 +461,9 @@
     let SUPABASE_URL = localStorage.getItem('ruah_sb_url') || '';
     let SUPABASE_KEY = localStorage.getItem('ruah_sb_key') || '';
 
+    // IMPORTANTE: nombre del bucket tal como está en Supabase
+    const BUCKET = 'PRODUCTOS';
+
     if (SUPABASE_URL) document.getElementById('sb-url').value = SUPABASE_URL;
     if (SUPABASE_KEY) document.getElementById('sb-key').value = SUPABASE_KEY;
     if (SUPABASE_URL && SUPABASE_KEY) {
@@ -550,11 +503,12 @@
       return res.status === 204 ? null : res.json();
     }
 
+    // ── CORRECCIÓN: usa el nombre del bucket en mayúsculas (PRODUCTOS) ──
     async function uploadImage(file) {
       const ext = file.name.split('.').pop();
       const filename = `${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
       const res = await fetch(
-        `${SUPABASE_URL}/storage/v1/object/productos/${filename}`,
+        `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${filename}`,
         {
           method: 'POST',
           headers: {
@@ -566,18 +520,20 @@
           body: file
         }
       );
-      if (!res.ok) throw new Error('Error subiendo imagen');
-      return `${SUPABASE_URL}/storage/v1/object/public/productos/${filename}`;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.message || 'Error subiendo imagen');
+      }
+      return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${filename}`;
     }
 
     // ═══════════════════════════════════════
     //  STATE
     // ═══════════════════════════════════════
     let selectedBadge = '';
-    let previewFiles = [];   // { file, url }
-    let existingUrls = [];   // URLs ya guardadas (en modo edición)
+    let previewFiles = [];
+    let existingUrls = [];
 
-    // Badge selector
     document.querySelectorAll('.badge-opt').forEach(el => {
       el.addEventListener('click', () => {
         document.querySelectorAll('.badge-opt').forEach(b => b.classList.remove('active'));
@@ -585,10 +541,8 @@
         selectedBadge = el.dataset.val;
       });
     });
-    // Default: ninguno activo
     document.querySelector('.badge-opt[data-val=""]').classList.add('active');
 
-    // Foto preview
     document.getElementById('f-fotos').addEventListener('change', function() {
       Array.from(this.files).forEach(file => {
         if (previewFiles.length >= 5) return;
@@ -602,14 +556,12 @@
     function renderPreviews() {
       const grid = document.getElementById('preview-grid');
       grid.innerHTML = '';
-      // Existing (edit mode)
       existingUrls.forEach((url, i) => {
         const item = document.createElement('div');
         item.className = 'preview-item';
         item.innerHTML = `<img src="${url}" /><button class="preview-remove" onclick="removeExisting(${i})">✕</button>`;
         grid.appendChild(item);
       });
-      // New files
       previewFiles.forEach((p, i) => {
         const item = document.createElement('div');
         item.className = 'preview-item';
@@ -618,15 +570,8 @@
       });
     }
 
-    function removePreview(i) {
-      previewFiles.splice(i, 1);
-      renderPreviews();
-    }
-
-    function removeExisting(i) {
-      existingUrls.splice(i, 1);
-      renderPreviews();
-    }
+    function removePreview(i) { previewFiles.splice(i, 1); renderPreviews(); }
+    function removeExisting(i) { existingUrls.splice(i, 1); renderPreviews(); }
 
     // ═══════════════════════════════════════
     //  SUBMIT
@@ -634,12 +579,12 @@
     async function submitProduct() {
       if (!SUPABASE_URL || !SUPABASE_KEY) { showToast('Configura Supabase primero', 'error'); return; }
 
-      const nombre    = document.getElementById('f-nombre').value.trim();
-      const codigo    = document.getElementById('f-codigo').value.trim();
-      const precio    = parseFloat(document.getElementById('f-precio').value);
-      const categoria = document.getElementById('f-categoria').value;
+      const nombre      = document.getElementById('f-nombre').value.trim();
+      const codigo      = document.getElementById('f-codigo').value.trim();
+      const precio      = parseFloat(document.getElementById('f-precio').value);
+      const categoria   = document.getElementById('f-categoria').value;
       const descripcion = document.getElementById('f-descripcion').value.trim();
-      const editId    = document.getElementById('edit-id').value;
+      const editId      = document.getElementById('edit-id').value;
 
       if (!nombre || !codigo || !precio || !categoria) {
         showToast('Completa nombre, código, precio y categoría', 'error'); return;
@@ -650,7 +595,6 @@
       btn.innerHTML = '<span class="spinner"></span> Publicando...';
 
       try {
-        // Subir imágenes nuevas
         let newUrls = [];
         if (previewFiles.length > 0) {
           const prog = document.getElementById('upload-progress');
@@ -668,9 +612,7 @@
         const payload  = { nombre, codigo, categoria, precio, descripcion, badge: selectedBadge, imagenes };
 
         if (editId) {
-          await sbFetch(`productos?id=eq.${editId}`, {
-            method: 'PATCH', body: JSON.stringify(payload)
-          });
+          await sbFetch(`productos?id=eq.${editId}`, { method: 'PATCH', body: JSON.stringify(payload) });
           showToast('Producto actualizado ✓', 'success');
         } else {
           await sbFetch('productos', { method: 'POST', body: JSON.stringify(payload) });
