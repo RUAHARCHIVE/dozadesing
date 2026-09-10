@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gato Online</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    padding: 32px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+  }
+  h1 {
+    margin: 0 0 4px;
+    font-size: 28px;
+    color: #d6336c;
+  }
+  .subtitle {
+    color: #888;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+  button {
+    background: #d6336c;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: transform 0.1s, background 0.2s;
+  }
+  button:hover { background: #b02a5b; }
+  button:active { transform: scale(0.97); }
+  button.secondary {
+    background: #f1f3f5;
+    color: #495057;
+  }
+  button.secondary:hover { background: #e9ecef; }
+  input[type="text"] {
+    width: 100%;
+    padding: 14px;
+    font-size: 20px;
+    text-align: center;
+    letter-spacing: 4px;
+    border-radius: 12px;
+    border: 2px solid #f1c0d4;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  input[type="text"]:focus { outline: none; border-color: #d6336c; }
+  .divider {
+    margin: 24px 0;
+    color: #ccc;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #eee;
+  }
+  .divider span { padding: 0 12px; }
+  .room-code {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 6px;
+    color: #d6336c;
+    background: #fff0f6;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 8px;
+  }
+  .hint { color: #999; font-size: 13px; margin-bottom: 20px; }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .cell {
+    aspect-ratio: 1;
+    background: #fff5f8;
+    border: none;
+    border-radius: 14px;
+    font-size: 42px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+  .cell:hover:not(:disabled) { background: #ffe3ec; }
+  .cell:disabled { cursor: default; }
+  .cell.x { color: #d6336c; }
+  .cell.o { color: #4c6ef5; }
+  .status {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 14px 0;
+    min-height: 24px;
+    color: #495057;
+  }
+  .status.mine { color: #37b24d; }
+  .status.win { color: #d6336c; font-size: 20px; }
+  .players {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #888;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+  .badge.x { background: #fff0f6; color: #d6336c; }
+  .badge.o { background: #edf2ff; color: #4c6ef5; }
+  .error { color: #e03131; font-size: 13px; margin-top: -4px; margin-bottom: 10px; min-height: 16px; }
+  .waiting { color: #f59f00; font-size: 14px; margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<div class="card" id="app"></div>
+
+<script>
+const app = document.getElementById('app');
+let myRole = null;
+let roomCode = null;
+let pollInterval = null;
+
+function genCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for (let i = 0; i < 4; i++) c += chars[Math.floor(Math.random() * chars.length)];
+  return c;
+}
+
+function emptyState() {
+  return {
+    board: Array(9).fill(null),
+    turn: 'X',
+    players: { X: true, O: false },
+    winner: null
+  };
+}
+
+function checkWinner(board) {
+  const lines = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+  for (const [a,b,c] of lines) {
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+  }
+  if (board.every(c => c)) return 'draw';
+  return null;
+}
+
+async function saveState(state) {
+  await window.storage.set('gato:' + roomCode, JSON.stringify(state), true);
+}
+
+async function loadState() {
+  try {
+    const res = await window.storage.get('gato:' + roomCode, true);
+    return res ? JSON.parse(res.value) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function createRoom() {
+  roomCode = genCode();
+  myRole = 'X';
+  const state = emptyState();
+  await saveState(state);
+  renderGame(state);
+  startPolling();
+}
+
+async function joinRoom(code) {
+  code = code.trim().toUpperCase();
+  if (!code) {
+    renderJoinError('Escribe un código.');
+    return;
+  }
+  const state = await loadState.call(null);
+  roomCode = code;
+  const existing = await loadState();
+  if (!existing) {
+    renderJoinError('No existe una sala con ese código.');
+    roomCode = null;
+    return;
+  }
+  if (existing.players.O) {
+    myRole = 'X';
+  } else {
+    existing.players.O = true;
+    myRole = 'O';
+    await saveState(existing);
+  }
+  renderGame(existing);
+  startPolling();
+}
+
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
+    const state = await loadState();
+    if (state) renderGame(state);
+  }, 1200);
+}
+
+async function makeMove(i) {
+  const state = await loadState();
+  if (!state || state.board[i] || state.winner) return;
+  if (state.turn !== myRole) return;
+  state.board[i] = myRole;
+  const winner = checkWinner(state.board);
+  state.winner = winner;
+  state.turn = state.turn === 'X' ? 'O' : 'X';
+  await saveState(state);
+  renderGame(state);
+}
+
+async function resetGame() {
+  const state = emptyState();
+  state.players = { X: true, O: true };
+  await saveState(state);
+  renderGame(state);
+}
+
+function renderJoinError(msg) {
+  const el = document.getElementById('join-error');
+  if (el) el.textContent = msg;
+}
+
+function renderLobby() {
+  app.innerHTML = `
+    <h1>Gato online</h1>
+    <div class="subtitle">Juega con tu pareja en tiempo real</div>
+    <button onclick="createRoom()">Crear sala</button>
+    <div class="divider"><span>o</span></div>
+    <input type="text" id="join-code" placeholder="Código de sala" maxlength="4" />
+    <div class="error" id="join-error"></div>
+    <button class="secondary" onclick="joinRoom(document.getElementById('join-code').value)">Unirse a sala</button>
+  `;
+}
+
+function renderGame(state) {
+  const waitingForO = !state.players.O;
+  const winner = state.winner;
+  let statusHtml = '';
+
+  if (waitingForO && myRole === 'X') {
+    statusHtml = `<div class="waiting">Esperando a que tu pareja se una...</div>`;
+  } else if (winner === 'draw') {
+    statusHtml = `<div class="status win">¡Empate!</div>`;
+  } else if (winner) {
+    const iWon = winner === myRole;
+    statusHtml = `<div class="status win">${iWon ? '¡Ganaste! 🎉' : winner + ' ganó'}</div>`;
+  } else {
+    const myTurn = state.turn === myRole;
+    statusHtml = `<div class="status ${myTurn ? 'mine' : ''}">${myTurn ? 'Tu turno' : 'Turno de tu pareja'}</div>`;
+  }
+
+  const cellsHtml = state.board.map((val, i) => {
+    const cls = val === 'X' ? 'x' : val === 'O' ? 'o' : '';
+    const disabled = (val || winner || state.turn !== myRole || waitingForO) ? 'disabled' : '';
+    return `<button class="cell ${cls}" ${disabled} onclick="makeMove(${i})">${val || ''}</button>`;
+  }).join('');
+
+  app.innerHTML = `
+    <h1>Gato online</h1>
+    <div class="room-code">${roomCode}</div>
+    <div class="hint">Comparte este código con tu pareja</div>
+    <div class="players">
+      <span class="badge x">X ${myRole === 'X' ? '(tú)' : ''}</span>
+      <span class="badge o">O ${myRole === 'O' ? '(tú)' : ''}</span>
+    </div>
+    ${statusHtml}
+    <div class="board">${cellsHtml}</div>
+    ${winner ? '<button onclick="resetGame()">Jugar de nuevo</button>' : ''}
+    <button class="secondary" onclick="location.reload()">Salir</button>
+  `;
+}
+
+renderLobby();
+</script>
+
+</body>
+</html>
