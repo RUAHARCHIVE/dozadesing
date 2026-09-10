@@ -50,6 +50,7 @@
   }
   button:hover { background: #b02a5b; }
   button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.6; cursor: default; }
   button.secondary {
     background: #f1f3f5;
     color: #495057;
@@ -111,6 +112,7 @@
     align-items: center;
     justify-content: center;
     transition: background 0.15s;
+    margin-top: 0;
   }
   .cell:hover:not(:disabled) { background: #ffe3ec; }
   .cell:disabled { cursor: default; }
@@ -147,13 +149,24 @@
 </head>
 <body>
 
-<div class="card" id="app"></div>
+<div class="card" id="app">Cargando...</div>
 
+<!-- SDK de Supabase -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
+/* =========================================================
+   1) PON AQUÍ TUS CREDENCIALES DE SUPABASE
+   (Project Settings -> API en tu dashboard de Supabase)
+   ========================================================= */
+const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
+const SUPABASE_ANON_KEY = 'TU-ANON-KEY-AQUI';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const app = document.getElementById('app');
 let myRole = null;
 let roomCode = null;
-let pollInterval = null;
+let channel = null;
 
 function genCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -184,35 +197,85 @@ function checkWinner(board) {
   return null;
 }
 
+/* ---------- Persistencia con Supabase ---------- */
+
 async function saveState(state) {
-  await window.storage.set('gato:' + roomCode, JSON.stringify(state), true);
+  const { error } = await supabase
+    .from('rooms')
+    .update({
+      board: state.board,
+      turn: state.turn,
+      players: state.players,
+      winner: state.winner,
+      updated_at: new Date().toISOString()
+    })
+    .eq('code', roomCode);
+  if (error) console.error('Error guardando:', error);
+}
+
+async function insertRoom(code, state) {
+  const { error } = await supabase.from('rooms').insert({
+    code,
+    board: state.board,
+    turn: state.turn,
+    players: state.players,
+    winner: state.winner
+  });
+  return error;
 }
 
 async function loadState() {
-  try {
-    const res = await window.storage.get('gato:' + roomCode, true);
-    return res ? JSON.parse(res.value) : null;
-  } catch (e) {
-    return null;
-  }
+  const { data, error } = await supabase
+    .from('rooms')
+    .select('*')
+    .eq('code', roomCode)
+    .single();
+  if (error || !data) return null;
+  return data;
 }
 
+function subscribeToRoom() {
+  if (channel) supabase.removeChannel(channel);
+  channel = supabase
+    .channel('room-' + roomCode)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'rooms',
+      filter: `code=eq.${roomCode}`
+    }, (payload) => {
+      renderGame(payload.new);
+    })
+    .subscribe();
+}
+
+/* ---------- Acciones del juego ---------- */
+
 async function createRoom() {
+  const btn = document.getElementById('create-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+
   roomCode = genCode();
   myRole = 'X';
   const state = emptyState();
-  await saveState(state);
+  const error = await insertRoom(roomCode, state);
+
+  if (error) {
+    console.error(error);
+    renderLobby();
+    renderJoinError('No se pudo crear la sala. Revisa la consola (F12).');
+    return;
+  }
   renderGame(state);
-  startPolling();
+  subscribeToRoom();
 }
 
 async function joinRoom(code) {
-  code = code.trim().toUpperCase();
+  code = (code || '').trim().toUpperCase();
   if (!code) {
     renderJoinError('Escribe un código.');
     return;
   }
-  const state = await loadState.call(null);
   roomCode = code;
   const existing = await loadState();
   if (!existing) {
@@ -223,20 +286,12 @@ async function joinRoom(code) {
   if (existing.players.O) {
     myRole = 'X';
   } else {
-    existing.players.O = true;
+    existing.players = { ...existing.players, O: true };
     myRole = 'O';
     await saveState(existing);
   }
   renderGame(existing);
-  startPolling();
-}
-
-function startPolling() {
-  if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(async () => {
-    const state = await loadState();
-    if (state) renderGame(state);
-  }, 1200);
+  subscribeToRoom();
 }
 
 async function makeMove(i) {
@@ -258,6 +313,8 @@ async function resetGame() {
   renderGame(state);
 }
 
+/* ---------- Render ---------- */
+
 function renderJoinError(msg) {
   const el = document.getElementById('join-error');
   if (el) el.textContent = msg;
@@ -267,7 +324,7 @@ function renderLobby() {
   app.innerHTML = `
     <h1>Gato online</h1>
     <div class="subtitle">Juega con tu pareja en tiempo real</div>
-    <button onclick="createRoom()">Crear sala</button>
+    <button id="create-btn" onclick="createRoom()">Crear sala</button>
     <div class="divider"><span>o</span></div>
     <input type="text" id="join-code" placeholder="Código de sala" maxlength="4" />
     <div class="error" id="join-error"></div>
