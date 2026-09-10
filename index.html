@@ -152,14 +152,14 @@
 <div class="card" id="app">Cargando...</div>
 
 <!-- SDK de Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 /* =========================================================
    1) PON AQUÍ TUS CREDENCIALES DE SUPABASE
    (Project Settings -> API en tu dashboard de Supabase)
    ========================================================= */
-const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
-const SUPABASE_ANON_KEY = 'TU-ANON-KEY-AQUI';
+const SUPABASE_URL = 'https://ocwxenxzkujnlwvnspjk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jd3hlbnh6a3Vqbmx3dm5zcGprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTY4NjQsImV4cCI6MjA5NTk5Mjg2NH0.DeqAp5aiarVHwfHEUlyPd0_fBa-f8dWmUFN9EKUwr_M';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
